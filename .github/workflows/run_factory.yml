@@ -1,0 +1,35 @@
+name: 24h Auto Tool Factory
+
+on:
+  schedule:
+    # 1時間ごとに自動実行（1日24回 × 10個 ＝ 240個/日）
+    - cron: '0 * * * *'
+  workflow_dispatch: # 手動で今すぐテスト実行するためのボタンを追加
+
+permissions:
+  contents: write # 生成したファイルをGitHubに自動保存する権限
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Factory Script
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python factory.py
+
+      - name: Auto Commit and Push Generated Tools
+        run: |
+          git config --local user.email "factory@bot.com"
+          git config --local user.name "AutoFactoryBot"
+          git add .
+          git commit -m "Auto-generated batch of tools" || exit 0
+          git push
