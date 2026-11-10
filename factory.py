@@ -3,8 +3,8 @@ import json
 import random
 import time
 import shutil
+import requests
 from datetime import datetime, timedelta
-from urllib import request
 
 API_KEY = os.environ.get("GROQ_API_KEY")
 MODEL = "llama-3.3-70b-versatile"
@@ -18,23 +18,24 @@ def ask_groq(prompt):
     url = "https://groq.com"
     headers = {
         "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0"
+        "Content-Type": "application/json"
     }
-    data = json.dumps({
+    payload = {
         "model": MODEL,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.8
-    }).encode("utf-8")
-    
-    req = request.Request(url, data=data, headers=headers, method="POST")
+    }
     try:
-        with request.urlopen(req) as res:
-            result = json.loads(res.read().decode("utf-8"))
+        res = requests.post(url, headers=headers, json=payload, timeout=30)
+        if res.status_code == 200:
+            result = res.json()
             first_choice = result["choices"].pop(0)
             return first_choice["message"]["content"]
+        else:
+            print(f"API Error {res.status_code}: {res.text}")
+            return ""
     except Exception as e:
-        print(f"API Error: {e}")
+        print(f"Request Error: {e}")
         return ""
 
 def cleanup_old_tools():
