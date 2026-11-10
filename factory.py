@@ -6,31 +6,26 @@ import shutil
 import requests
 from datetime import datetime, timedelta
 
-API_KEY = os.environ.get("GROQ_API_KEY")
-MODEL = "llama-3.3-70b-versatile"
+API_KEY = os.environ.get("GEMINI_API_KEY")
 OUTPUT_DIR = "generated_tools"
 
 DATA_TYPES = ["CSV/Excel", "Local Videos", "PDF Docs", "Audio Files", "JSON Logs"]
 TARGET_USERS = ["Data Analysts", "Sysadmins", "Video Editors", "Office Workers"]
 CORE_ACTIONS = ["Bulk Merging", "Auto Sorting", "Format Converting", "Metadata Clean"]
 
-def ask_groq(prompt):
-    url = "https://groq.com"
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
+def ask_gemini(prompt):
+    url = f"https://googleapis.com{API_KEY}"
+    headers = {"Content-Type": "application/json"}
     payload = {
-        "model": MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.8
+        "contents": [{"parts": [{"text": prompt}]}]
     }
     try:
         res = requests.post(url, headers=headers, json=payload, timeout=30)
         if res.status_code == 200:
             result = res.json()
-            first_choice = result["choices"].pop(0)
-            return first_choice["message"]["content"]
+            candidate = result["candidates"].pop(0)
+            part = candidate["content"]["parts"].pop(0)
+            return part["text"]
         else:
             print(f"API Error {res.status_code}: {res.text}")
             return ""
@@ -59,7 +54,7 @@ def run_batch():
     
     for i in range(10):
         if random.random() < 0.03:
-            d_type = ask_groq("Invent an obscure, hyper-specific file format or data type (1-3 words only, no quotes).").strip() or random.choice(DATA_TYPES)
+            d_type = ask_gemini("Invent an obscure, hyper-specific file format or data type (1-3 words only, no quotes).").strip() or random.choice(DATA_TYPES)
         else:
             d_type = random.choice(DATA_TYPES)
             
@@ -75,7 +70,7 @@ def run_batch():
         Output ONLY raw Python code. No markdown blocks.
         """
         
-        code = ask_groq(prompt)
+        code = ask_gemini(prompt)
         if "import" in code:
             tool_id = f"tool_{int(time.time())}_{i}"
             folder = os.path.join(OUTPUT_DIR, tool_id)
