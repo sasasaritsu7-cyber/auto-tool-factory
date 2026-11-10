@@ -31,7 +31,8 @@ def ask_groq(prompt):
     try:
         with request.urlopen(req) as res:
             result = json.loads(res.read().decode("utf-8"))
-            return result["choices"][0]["message"]["content"]
+            first_choice = result["choices"].pop(0)
+            return first_choice["message"]["content"]
     except Exception as e:
         print(f"API Error: {e}")
         return ""
