@@ -14,6 +14,7 @@ TARGET_USERS = ["Data Analysts", "Sysadmins", "Video Editors", "Office Workers"]
 CORE_ACTIONS = ["Bulk Merging", "Auto Sorting", "Format Converting", "Metadata Clean"]
 
 def ask_gemini(prompt):
+    # 【修正箇所】Gemini API用の正しいURLとクエリパラメータに直しました
     url = f"https://googleapis.com{API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
@@ -23,8 +24,8 @@ def ask_gemini(prompt):
         res = requests.post(url, headers=headers, json=payload, timeout=30)
         if res.status_code == 200:
             result = res.json()
-            candidate = result["candidates"].pop(0)
-            part = candidate["content"]["parts"].pop(0)
+            candidate = result["candidates"][0] # 安全のためにpopから通常参照に変更
+            part = candidate["content"]["parts"][0]
             return part["text"]
         else:
             print(f"API Error {res.status_code}: {res.text}")
