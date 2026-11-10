@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from urllib import request
 
 API_KEY = os.environ.get("GROQ_API_KEY")
-MODEL = "llama-3.3-70b-versatile" # Groqなら70Bの超賢いモデルが無料で爆速稼働します
+MODEL = "llama-3.3-70b-versatile"
 OUTPUT_DIR = "generated_tools"
 
 DATA_TYPES = ["CSV/Excel", "Local Videos", "PDF Docs", "Audio Files", "JSON Logs"]
@@ -37,7 +37,6 @@ def ask_groq(prompt):
         return ""
 
 def cleanup_old_tools():
-    """7日以上経過した反応ゼロのツールを自動削除"""
     if not os.path.exists(OUTPUT_DIR):
         return
     now = datetime.now()
@@ -48,7 +47,6 @@ def cleanup_old_tools():
             with open(meta_path, "r") as f:
                 meta = json.load(f)
             created = datetime.strptime(meta["created_at"], "%Y-%m-%d")
-            # 反応スコアが0のまま7日経過したら削除
             if meta.get("clicks", 0) == 0 and (now - created) > timedelta(days=7):
                 shutil.rmtree(path)
                 print(f"Deleted expired tool: {folder}")
@@ -57,9 +55,7 @@ def run_batch():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     cleanup_old_tools()
     
-    # 1回の起動で10個生産（1時間おきに動かせば1日240個）
     for i in range(10):
-        # 3%の狂気突然変異
         if random.random() < 0.03:
             d_type = ask_groq("Invent an obscure, hyper-specific file format or data type (1-3 words only, no quotes).").strip() or random.choice(DATA_TYPES)
         else:
@@ -94,7 +90,7 @@ def run_batch():
                 }, f, indent=2)
             print(f"Generated: {tool_id}")
             
-        time.sleep(5) # 無料APIの制限回避
+        time.sleep(5)
 
 if __name__ == "__main__":
     run_batch()
