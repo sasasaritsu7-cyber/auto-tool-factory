@@ -2,12 +2,11 @@ name: 24h Auto Tool Factory
 
 on:
   schedule:
-    # 1時間ごとに自動実行（1日24回 × 10個 ＝ 240個/日）
     - cron: '0 * * * *'
-  workflow_dispatch: # 手動で今すぐテスト実行するためのボタンを追加
+  workflow_dispatch:
 
 permissions:
-  contents: write # 生成したファイルをGitHubに自動保存する権限
+  contents: write
 
 jobs:
   build:
@@ -20,6 +19,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
 
       - name: Run Factory Script
         env:
